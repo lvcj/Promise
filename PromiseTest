@@ -1,0 +1,72 @@
+ //模拟promise实现方案：
+ function PromiseTest(initFn){
+   if(typeof initFn !== "function"){
+     return new Error("PromiseTest constructor takes a function argument");
+   }
+    var pending = true;
+    var done = false;
+    this.thenCallBack = [];
+    this.catchCallBack = [];
+    let self = this;
+    this.result = null;
+    function resolve(res){
+      if(done){
+        return;
+      }
+      done = true;
+      self.result = res;
+      setTimeout(function(){
+        self.thenCallBack.forEach(callback => {
+          callback(res);
+        });
+      });
+    }
+  
+    function reject(res){
+      if(done){
+        return;
+      }
+      done = true;
+      self.result = res;
+      setTimeout(function(){
+        self.catchCallBack.forEach(callback => {
+          callback(res);
+        });
+      });
+    }
+    initFn(resolve, reject);
+    this.then = function(fn){
+      if(done){
+        setTimeout(function(){
+          fn(self.result);
+        },0);
+      } else {
+        this.thenCallBack.push(fn);
+      }
+      return this;
+    }
+  
+    this.catch = function(fn){
+      if(done){
+        setTimeout(function(){
+          fn(self.result);
+        },0);
+      } else {
+        this.catchCallBack.push(fn);
+      }
+      return this;
+    }
+  }
+  PromiseTest.resolve = function(res){
+    return new PromiseTest((resolve,reject)=>{
+      resolve(res);
+    });
+  }
+  
+  PromiseTest.reject = function(res){
+    return new PromiseTest((resolve,reject)=>{
+      reject(res);
+    });
+  }
+
+export default PromiseTest;
